@@ -1,5 +1,9 @@
 #pragma once
 #include <iostream>
+#include <complex>
+#include <vector>
+#define PI 3.141592653589793238460
+
 class FT
 {
 private:

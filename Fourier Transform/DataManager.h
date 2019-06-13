@@ -1,4 +1,6 @@
 #pragma once
+#include <complex>
+#include <vector>
 
 class DataManager
 {
@@ -9,6 +11,7 @@ private:
 	double ** FreqImag; // 傅立葉虛數部分
 	int ImageHeight;
 	int ImageWidth;
+	std::vector< std::vector <std::complex<double> >>Freq;	// complex
 
 public:
 	DataManager(int h, int w);
@@ -17,6 +20,7 @@ public:
 	void SetPixel(int x, int y, int pixelValue);
 	void SetFreqReal(int x, int y, double value);
 	void SetFreqImag(int x, int y, double value);
+	void SetFreq(int x,int y,double value);	// complex
 
 	int GetImageHeight();
 	int GetImageWidth();
@@ -26,6 +30,7 @@ public:
 	int** GetOutputImage();
 	double** GetFreqReal();
 	double** GetFreqImag();
+	std::vector<std::vector<std::complex<double> >> GetFreq();	// complex
 };
 
 

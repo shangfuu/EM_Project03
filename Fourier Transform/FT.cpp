@@ -10,13 +10,13 @@ void FT::DiscreteFourierTransform(int** InputImage, int** OutputImage, double **
 	int N = w;
 
 	double** pFreq = new double*[M];
-	for (int newcnt = 0; newcnt<M; newcnt++)
+	for (int newcnt = 0; newcnt < M; newcnt++)
 	{
 		pFreq[newcnt] = new double[N]; // 傅立葉頻率陣列
 	}
-	for (int forzero_i = 0; forzero_i<M; forzero_i++)
+	for (int forzero_i = 0; forzero_i < M; forzero_i++)
 	{
-		for (int forzero_j = 0; forzero_j<N; forzero_j++)
+		for (int forzero_j = 0; forzero_j < N; forzero_j++)
 		{
 			pFreq[forzero_i][forzero_j] = 0.0f;
 		}
@@ -26,7 +26,7 @@ void FT::DiscreteFourierTransform(int** InputImage, int** OutputImage, double **
 	{
 		for (int j = 0; j < N; j++)
 		{
-			DFT(FreqReal, FreqImag, InputImage,M, N, j, i);
+			DFT(FreqReal, FreqImag, InputImage, M, N, j, i);
 		}
 	}
 	for (int i = 0; i < M; i++)
@@ -58,7 +58,7 @@ void FT::DFT(double ** pFreqReal, double ** pFreqImag, int ** InputImage, int h,
 		for (int x = 0; x < N; x++)
 		{
 			// 可先計算Eular's equation e^{j*theta} = cos{theta}+j*sin{theta}			
-			double angleDFT = (-1.0f * 2.0f * 3.14159 * (double)(u*x + v*y) / (double)M);
+			double angleDFT = (-1.0f * 2.0f * 3.14159 * (double)(u*x + v * y) / (double)M);
 			double c = cos(angleDFT);
 			double s = sin(angleDFT);
 
@@ -81,16 +81,16 @@ void FT::InverseDiscreteFourierTransform(int ** InputImage, int ** OutputImage, 
 	double** InverseImag = new double*[M];
 	double** pFreq = new double*[M];
 
-	for (int i = 0; i<M; i++)
+	for (int i = 0; i < M; i++)
 	{
 		InverseReal[i] = new double[N];
 		InverseImag[i] = new double[N];
 		pFreq[i] = new double[N]; // 傅立葉頻率陣列
 	}
 
-	for (int i = 0; i<M; i++)
+	for (int i = 0; i < M; i++)
 	{
-		for (int j = 0; j<N; j++)
+		for (int j = 0; j < N; j++)
 		{
 			InverseReal[i][j] = 0.0f;
 			InverseImag[i][j] = 0.0f;
@@ -102,7 +102,7 @@ void FT::InverseDiscreteFourierTransform(int ** InputImage, int ** OutputImage, 
 	{
 		for (int j = 0; j < N; j++)
 		{
-			InverseDFT(InverseReal, InverseImag,FreqReal, FreqImag, M, N, j, i);
+			InverseDFT(InverseReal, InverseImag, FreqReal, FreqImag, M, N, j, i);
 		}
 	}
 	for (int i = 0; i < M; i++)
@@ -144,7 +144,7 @@ void FT::InverseDFT(double ** InverseReal, double ** InverseImag, double ** pFre
 		for (int u = 0; u < N; u++)
 		{
 			// 可先計算Eular's equation e^{j*theta} = cos{theta}+j*sin{theta}			
-			double angleIDFT = (2.0f * 3.14159 * (double)(u*x + v*y) / (double)M);
+			double angleIDFT = (2.0f * 3.14159 * (double)(u*x + v * y) / (double)M);
 			double c = cos(angleIDFT);
 			double s = sin(angleIDFT);
 
@@ -159,10 +159,85 @@ void FT::InverseDFT(double ** InverseReal, double ** InverseImag, double ** pFre
 
 void FT::FastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h, int w)
 {
+	//------------------Initial--------------------------
+	int M = h;
+	int N = w;
+
+	double** pFreq = new double*[M];
+	for (int newcnt = 0; newcnt < M; newcnt++)
+	{
+		pFreq[newcnt] = new double[N]; // 傅立葉頻率陣列
+	}
+	for (int forzero_i = 0; forzero_i < M; forzero_i++)
+	{
+		for (int forzero_j = 0; forzero_j < N; forzero_j++)
+		{
+			pFreq[forzero_i][forzero_j] = 0.0f;
+		}
+	}
+	//-------------------Fast Fourier------------------------
+	for (int i = 0; i < M; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			FFT(FreqReal, FreqImag, InputImage, M, N, j, i);
+		}
+	}
+	//---------------------Mix Real and Imagine Number----------------------
+	for (int i = 0; i < M; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			// 將計算好的傅立葉實數與虛數部分作結合 
+			pFreq[i][j] = sqrt(pow(FreqReal[i][j], (double) 2.0) + pow(FreqImag[i][j], (double) 2.0));
+			// 結合後之頻率域丟入影像陣列中顯示 
+			OutputImage[i][j] = pFreq[i][j];
+		}
+	}
+	//--------------------Release Array-----------------------
+	for (int delcnt = 0; delcnt < M; delcnt++)
+	{
+		delete[] pFreq[delcnt];
+	}
+	delete[] pFreq;
+
 }
 
 void FT::FFT(double ** pFreqReal, double ** pFreqImag, int ** InputImage, int h, int w, int u, int v)
 {
+	// M = N 必須是方陣
+	int M = h;
+	int N = w;
+	std::vector<std::complex<double>> x(N);
+
+	//------------ Bit-Reversal Permutation--------------------
+	for (int i = 1, j = 0; i < N; ++i) {
+		for (int k = N >> 1; !((j ^= k)&k); k >>= 1) {
+			if (i > j) {
+				swap(x[i], x[j]);
+			}
+		}
+	}
+	//---------------------Fast Fourier-----------------------
+	/* Dynamic Programmin */
+	for (int k = 2; k <= N; k *= 2) {
+		double Omega = -2.0 * PI / k;
+		std::complex<double> dSida(cos(Omega), sin(Omega));
+
+		// 每K個做一次
+		for (int j = 0; j < N; j += k) {
+			// 前 k/2 個與後 k/2 的三角函數直恰好對稱，
+			// 因此兩兩對稱一起做。
+			std::complex<double> Sida(1,0);
+			for (int i = j; i < j + k / 2;i++) {
+				std::complex<double>a = x[i];
+				std::complex<double>b = x[i+k/2] * Sida;
+				x[i] = a + b;
+				x[i + k / 2] = a - b;
+				Sida *= dSida;
+			}
+		}
+	}
 }
 
 void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h, int w)
