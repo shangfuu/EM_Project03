@@ -434,6 +434,11 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 	int w = dataManager->GetImageWidth();
 	int h = dataManager->GetImageHeight();
 
+	// tmmp Image 這樣按兩次FFT 才部會偷用灰階轉
+	int **tmpImage = new int *[w];
+	for (int i = 0; i < w; i++) 
+		tmpImage[i] = new int[h];
+
 	// 利用傅立葉之平移性，平移頻率
 	for (int i = 0; i < h; i++)
 	{
@@ -441,13 +446,15 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 		{
 			int valuePixeli = dataManager->GetInputImage()[i][j];
 			valuePixeli = valuePixeli * pow((float)-1, (float)(i + j));
-			dataManager->SetPixel(j, i, valuePixeli);
+			//dataManager->SetPixel(j, i, valuePixeli);
+			tmpImage[i][j] = valuePixeli;
 		}
 	}
 
 	/* Do Fast Fourier */
 
-	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreq(), h);
+	//fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreq(), h);
+	fourierTransformMethod->FastFourierTransform(tmpImage, dataManager->GetOutputImage(), dataManager->GetFreq(), h);
 
 	/* Output Image */
 	Bitmap^ FFTImage = gcnew Bitmap(w, h);
@@ -552,6 +559,12 @@ private: System::Void inverseFastFourierTransformToolStripMenuItem_Click(System:
 	int w = dataManager->GetImageWidth();
 	int h = dataManager->GetImageHeight();
 
+	// tmp Image 這樣按兩次FFT 才部會偷用灰階轉
+	int **tmpImage = new int *[w];
+	for (int i = 0; i < w; i++)
+		tmpImage[i] = new int[h];
+
+
 	// 利用傅立葉之平移性，平移頻率
 	for (int i = 0; i < h; i++)
 	{
@@ -559,12 +572,14 @@ private: System::Void inverseFastFourierTransformToolStripMenuItem_Click(System:
 		{
 			int valuePixeli = dataManager->GetInputImage()[i][j];
 			valuePixeli = valuePixeli * pow((float)-1, (float)(i + j));
-			dataManager->SetPixel(j, i, valuePixeli);
+			// dataManager->SetPixel(j, i, valuePixeli);
+			tmpImage[i][j] = valuePixeli;
 		}
 	}
 
 	/* Do Fast Fourier Inverse */
-	fourierTransformMethod->InverseFastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(),dataManager->GetFreq(), h);
+	//fourierTransformMethod->InverseFastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(),dataManager->GetFreq(), h);
+	fourierTransformMethod->InverseFastFourierTransform(tmpImage, dataManager->GetOutputImage(),dataManager->GetFreq(), h);
 
 	/* Output Image */
 	Bitmap^ FFTINVImage = gcnew Bitmap(w, h);
