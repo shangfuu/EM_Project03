@@ -175,6 +175,7 @@ namespace FourierTransform {
 			this->inverseFastFourierTransformToolStripMenuItem->Name = L"inverseFastFourierTransformToolStripMenuItem";
 			this->inverseFastFourierTransformToolStripMenuItem->Size = System::Drawing::Size(263, 22);
 			this->inverseFastFourierTransformToolStripMenuItem->Text = L"Inverse Fast Fourier Transform";
+			this->inverseFastFourierTransformToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::inverseFastFourierTransformToolStripMenuItem_Click);
 			// 
 			// lowpassFilterToolStripMenuItem
 			// 
@@ -436,10 +437,10 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 
 	/* Do Fast Fourier */
 
-	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreqReal(), dataManager->GetFreqImag(), h, w);
+	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), h);
 
 	/* Output Image */
-	Bitmap^ DFTImage = gcnew Bitmap(w, h);
+	Bitmap^ FFTImage = gcnew Bitmap(w, h);
 	for (int i = 0; i <h; i++)
 	{
 		for (int j = 0; j <w; j++)
@@ -453,12 +454,15 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 			{
 				valuePixeli = 0;
 			}
-			DFTImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
+			FFTImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
 		}
 	}
-	pictureBox_OutputImage->Image = DFTImage;
+	pictureBox_OutputImage->Image = FFTImage;
 }
 
 
+private: System::Void inverseFastFourierTransformToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+
+}
 };
 }
