@@ -172,7 +172,7 @@ void FT::FastFourierTransform(int ** InputImage, int ** OutputImage,std::complex
 		}
 	}
 
-	//-------------------Fast Fourier------------------------	
+	//-------------------Fast Fourier------------------------
 
 	// Row
 	for (int t = 0; t < N; ++t)
@@ -305,8 +305,7 @@ void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::
 	// Freq = preFreq
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
-			std::complex<double>tmp(FreqRI[j][i].real(), FreqRI[j][i].imag());
-			Freq[i].push_back(tmp);
+			Freq[i].push_back(FreqRI[i][j]);
 		}
 	}
 
@@ -401,7 +400,6 @@ void FT::InverseFFT(double ** InverseReal, double ** InverseImag, double ** pFre
 	// 因為FFT 做不出來，所以我猜這應該也出不來
 	// 於是我就直接不做了
 }
-
 
 void FT::LowpassFilter(double** Real, double** Img, double** filter)
 {
