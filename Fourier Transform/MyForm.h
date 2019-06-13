@@ -178,6 +178,7 @@ namespace FourierTransform {
 			this->inverseFastFourierTransformToolStripMenuItem->Name = L"inverseFastFourierTransformToolStripMenuItem";
 			this->inverseFastFourierTransformToolStripMenuItem->Size = System::Drawing::Size(308, 26);
 			this->inverseFastFourierTransformToolStripMenuItem->Text = L"Inverse Fast Fourier Transform";
+			this->inverseFastFourierTransformToolStripMenuItem->Click += gcnew System::EventHandler(this, &MyForm::inverseFastFourierTransformToolStripMenuItem_Click);
 			// 
 			// lowpassFilterToolStripMenuItem
 			// 
@@ -446,10 +447,10 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 
 	/* Do Fast Fourier */
 
-	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreqReal(), dataManager->GetFreqImag(), h, w);
+	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreq(), h);
 
 	/* Output Image */
-	Bitmap^ DFTImage = gcnew Bitmap(w, h);
+	Bitmap^ FFTImage = gcnew Bitmap(w, h);
 	for (int i = 0; i <h; i++)
 	{
 		for (int j = 0; j <w; j++)
@@ -463,10 +464,10 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 			{
 				valuePixeli = 0;
 			}
-			DFTImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
+			FFTImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
 		}
 	}
-	pictureBox_OutputImage->Image = DFTImage;
+	pictureBox_OutputImage->Image = FFTImage;
 }
 private: System::Void lowpassFilterToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e)
 {
@@ -546,5 +547,44 @@ private: System::Void highpassFilterToolStripMenuItem_Click(System::Object^  sen
 	pictureBox_OutputImage->Image = HPImage;
 }
 
+private: System::Void inverseFastFourierTransformToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+	/* Initial Stuff*/
+	int w = dataManager->GetImageWidth();
+	int h = dataManager->GetImageHeight();
+
+	// 利用傅立葉之平移性，平移頻率
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			int valuePixeli = dataManager->GetInputImage()[i][j];
+			valuePixeli = valuePixeli * pow((float)-1, (float)(i + j));
+			dataManager->SetPixel(j, i, valuePixeli);
+		}
+	}
+
+	/* Do Fast Fourier Inverse */
+	fourierTransformMethod->InverseFastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(),dataManager->GetFreq(), h);
+
+	/* Output Image */
+	Bitmap^ FFTINVImage = gcnew Bitmap(w, h);
+	for (int i = 0; i <h; i++)
+	{
+		for (int j = 0; j <w; j++)
+		{
+			int valuePixeli = dataManager->GetOutputImage()[i][j];
+			if (valuePixeli > 255)
+			{
+				valuePixeli = 255;
+			}
+			else if (valuePixeli < 0)
+			{
+				valuePixeli = 0;
+			}
+			FFTINVImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
+		}
+	}
+	pictureBox_OutputImage->Image = FFTINVImage;
+}
 };
 }

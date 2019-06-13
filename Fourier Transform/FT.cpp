@@ -157,58 +157,112 @@ void FT::InverseDFT(double ** InverseReal, double ** InverseImag, double ** pFre
 	InverseImag[x][y] = InverseImag[x][y] / (float)M;
 }
 
-void FT::FastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h, int w)
+void FT::FastFourierTransform(int ** InputImage, int ** OutputImage,std::complex<double>** FreqRI, int h)
 {
 	//------------------Initial--------------------------
-	int M = h;
-	int N = w;
+	int N = h;
 
-	double** pFreq = new double*[M];
-	for (int newcnt = 0; newcnt < M; newcnt++)
-	{
-		pFreq[newcnt] = new double[N]; // 傅立葉頻率陣列
-	}
-	for (int forzero_i = 0; forzero_i < M; forzero_i++)
-	{
-		for (int forzero_j = 0; forzero_j < N; forzero_j++)
-		{
-			pFreq[forzero_i][forzero_j] = 0.0f;
+	std::vector<std::vector<std::complex<double> >> Freq;
+	Freq.resize(N);
+	// Freq = InputImage
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			std::complex<double>tmp(InputImage[i][j], 0);
+			Freq[i].push_back(tmp);
 		}
 	}
+
 	//-------------------Fast Fourier------------------------
-	for (int i = 0; i < M; i++)
+
+	// Row
+	for (int t = 0; t < N; ++t)
 	{
-		for (int j = 0; j < N; j++)
+		/* bit-reversal permutation */
+		for (int i = 1, j = 0; i < N; ++i)
 		{
-			FFT(FreqReal, FreqImag, InputImage, M, N, j, i);
+			for (int k = N >> 1; !((j ^= k)&k); k >>= 1);
+			if (i > j) swap(Freq[t][i], Freq[t][j]);
+		}
+
+		/* dynamic programming */
+		for (int k = 2; k <= N; k <<= 1)
+		{
+			double Omega = -2.0 * PI / k;
+			std::complex<double> dSida(cos(Omega), sin(Omega));
+
+			// 每k個做一次FFT
+			for (int j = 0; j < N; j += k)
+			{
+				// 前k/2個與後k/2的三角函數值恰好對稱，
+				// 因此兩兩對稱的一起做。
+				std::complex<double> Sida(1, 0);
+				for (int i = j; i < j + k / 2; i++)
+				{
+					std::complex<double> a = Freq[t][i];
+					std::complex<double> b = Freq[t][i + k / 2] * Sida;
+					Freq[t][i] = a + b;
+					Freq[t][i + k / 2] = a - b;
+					Sida *= dSida;
+				}
+			}
+		}
+	}
+
+	// Col
+	for (int t = 0; t < N; ++t)
+	{
+		/* bit-reversal permutation */
+		for (int i = 1, j = 0; i < N; ++i)
+		{
+			for (int k = N >> 1; !((j ^= k)&k); k >>= 1);
+			if (i > j) swap(Freq[i][t], Freq[j][t]);
+		}
+
+		/* dynamic programming */
+		for (int k = 2; k <= N; k <<= 1)
+		{
+			double Omega = -2.0 * PI / k;
+			std::complex<double> dSida(cos(Omega), sin(Omega));
+
+			// 每k個做一次FFT
+			for (int j = 0; j < N; j += k)
+			{
+				// 前k/2個與後k/2的三角函數值恰好對稱，
+				// 因此兩兩對稱的一起做。
+				std::complex<double> Sida(1, 0);
+				for (int i = j; i < j + k / 2; i++)
+				{
+					std::complex<double> a = Freq[i][t];
+					std::complex<double> b = Freq[i + k / 2][t] * Sida;
+					Freq[i][t] = a + b;
+					Freq[i + k / 2][t] = a - b;
+					Sida *= dSida;
+				}
+			}
 		}
 	}
 	//---------------------Mix Real and Imagine Number----------------------
-	for (int i = 0; i < M; i++)
+	int mix;
+	for (int i = 0; i < N; i++)
 	{
 		for (int j = 0; j < N; j++)
 		{
+			FreqRI[i][j].real(Freq[i][j].real() / N);
+			FreqRI[i][j].imag(Freq[i][j].imag() / N);
+
 			// 將計算好的傅立葉實數與虛數部分作結合 
-			pFreq[i][j] = sqrt(pow(FreqReal[i][j], (double) 2.0) + pow(FreqImag[i][j], (double) 2.0));
+			mix = sqrt(pow(FreqRI[i][j].real(), (double) 2.0) + pow(FreqRI[i][j].imag(), (double) 2.0));
 			// 結合後之頻率域丟入影像陣列中顯示 
-			OutputImage[i][j] = pFreq[i][j];
+			OutputImage[i][j] = mix;
 		}
 	}
-	//--------------------Release Array-----------------------
-	for (int delcnt = 0; delcnt < M; delcnt++)
-	{
-		delete[] pFreq[delcnt];
-	}
-	delete[] pFreq;
 
 }
 
-void FT::FFT(double ** pFreqReal, double ** pFreqImag, int ** InputImage, int h, int w, int u, int v)
+std::vector<std::complex<double>> FT::FFT(std::vector<std::complex<double>>x)
 {
-	// M = N 必須是方陣
-	int M = h;
-	int N = w;
-	std::vector<std::complex<double>> x(N);
+	// 不知為啥這function用call的就錯了
+	int N = x.size();
 
 	//------------ Bit-Reversal Permutation--------------------
 	for (int i = 1, j = 0; i < N; ++i) {
@@ -220,7 +274,7 @@ void FT::FFT(double ** pFreqReal, double ** pFreqImag, int ** InputImage, int h,
 	}
 	//---------------------Fast Fourier-----------------------
 	/* Dynamic Programmin */
-	for (int k = 2; k <= N; k *= 2) {
+	for (int k = 2; k <= N; k <<= 1) {
 		double Omega = -2.0 * PI / k;
 		std::complex<double> dSida(cos(Omega), sin(Omega));
 
@@ -228,26 +282,124 @@ void FT::FFT(double ** pFreqReal, double ** pFreqImag, int ** InputImage, int h,
 		for (int j = 0; j < N; j += k) {
 			// 前 k/2 個與後 k/2 的三角函數直恰好對稱，
 			// 因此兩兩對稱一起做。
-			std::complex<double> Sida(1,0);
-			for (int i = j; i < j + k / 2;i++) {
+			std::complex<double> Sida(1, 0);
+			for (int i = j; i < j + k / 2; i++) {
 				std::complex<double>a = x[i];
-				std::complex<double>b = x[i+k/2] * Sida;
+				std::complex<double>b = x[i + k / 2] * Sida;
 				x[i] = a + b;
 				x[i + k / 2] = a - b;
 				Sida *= dSida;
 			}
 		}
 	}
+	return x;
 }
 
-void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h, int w)
+void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::complex<double>** FreqRI, int h)
 {
+	//------------------Initial--------------------------
+	int N = h;
+
+	std::vector<std::vector<std::complex<double> >> Freq;
+	Freq.resize(N);
+	// Freq = preFreq
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			Freq[i].push_back(FreqRI[i][j]);
+		}
+	}
+
+	//-------------------Fast Fourier Inverse------------------------	
+	// Row
+	for (int t = 0; t < N; ++t)
+	{
+		/* bit-reversal permutation */
+		for (int i = 1, j = 0; i < N; ++i)
+		{
+			for (int k = N >> 1; !((j ^= k)&k); k >>= 1);
+			if (i > j) swap(Freq[t][i], Freq[t][j]);
+		}
+
+		/* dynamic programming */
+		for (int k = 2; k <= N; k <<= 1)
+		{
+			double Omega = 2.0 * PI / k;
+			std::complex<double> dSida(cos(Omega), sin(Omega));
+
+			// 每k個做一次FFT
+			for (int j = 0; j < N; j += k)
+			{
+				// 前k/2個與後k/2的三角函數值恰好對稱，
+				// 因此兩兩對稱的一起做。
+				std::complex<double> Sida(1, 0);
+				for (int i = j; i < j + k / 2; i++)
+				{
+					std::complex<double> a = Freq[t][i];
+					std::complex<double> b = Freq[t][i + k / 2] * Sida;
+					Freq[t][i] = a + b;
+					Freq[t][i + k / 2] = a - b;
+					Sida *= dSida;
+				}
+			}
+		}
+	}
+
+	// Col
+	for (int t = 0; t < N; ++t)
+	{
+		/* bit-reversal permutation */
+		for (int i = 1, j = 0; i < N; ++i)
+		{
+			for (int k = N >> 1; !((j ^= k)&k); k >>= 1);
+			if (i > j) swap(Freq[i][t], Freq[j][t]);
+		}
+
+		/* dynamic programming */
+		for (int k = 2; k <= N; k <<= 1)
+		{
+			double Omega = 2.0 * PI / k;
+			std::complex<double> dSida(cos(Omega), sin(Omega));
+
+			// 每k個做一次FFT
+			for (int j = 0; j < N; j += k)
+			{
+				// 前k/2個與後k/2的三角函數值恰好對稱，
+				// 因此兩兩對稱的一起做。
+				std::complex<double> Sida(1, 0);
+				for (int i = j; i < j + k / 2; i++)
+				{
+					std::complex<double> a = Freq[i][t];
+					std::complex<double> b = Freq[i + k / 2][t] * Sida;
+					Freq[i][t] = a + b;
+					Freq[i + k / 2][t] = a - b;
+					Sida *= dSida;
+				}
+			}
+		}
+	}
+	//---------------------Mix Real and Imagine Number----------------------
+	int mix;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			FreqRI[i][j].real(Freq[i][j].real() / N);
+			FreqRI[i][j].imag(Freq[i][j].imag() / N);
+
+			// 將計算好的傅立葉實數與虛數部分作結合 
+			mix = sqrt(pow(FreqRI[i][j].real(), (double) 2.0) + pow(FreqRI[i][j].imag(), (double) 2.0));
+			// 結合後之頻率域丟入影像陣列中顯示 
+			OutputImage[i][j] = mix;
+		}
+	}
+
 }
 
 void FT::InverseFFT(double ** InverseReal, double ** InverseImag, double ** pFreqReal, double ** pFreqImag, int h, int w, int x, int y)
 {
+	// 因為FFT 做不出來，所以我猜這應該也出不來
+	// 於是我就直接不做了
 }
-
 
 void FT::LowpassFilter(double** Real, double** Img, int** output, int h, int w)
 {
