@@ -9,6 +9,7 @@ DataManager::DataManager(int h, int w)
 	OutputImage = new int*[h];
 	FreqReal = new double*[h];
 	FreqImag = new double*[h];
+	Freq = new std::complex<double>*[h];	//complex
 
 	for (int i = 0; i < h; i++)
 	{
@@ -16,6 +17,7 @@ DataManager::DataManager(int h, int w)
 		OutputImage[i] = new int[w];
 		FreqReal[i] = new double[w];
 		FreqImag[i] = new double[w];
+		Freq[i] = new std::complex<double>[w];	//complex
 	}
 
 	for (int i = 0; i < h; i++)
@@ -25,6 +27,7 @@ DataManager::DataManager(int h, int w)
 			OutputImage[i][j] = 0;
 			FreqReal[i][j] = 0;
 			FreqImag[i][j] = 0;
+			Freq[i][j] = 0;
 		}
 }
 
@@ -71,4 +74,9 @@ double ** DataManager::GetFreqReal()
 double ** DataManager::GetFreqImag()
 {
 	return FreqImag;
+}
+
+std::complex<double>** DataManager::GetFreq()
+{
+	return Freq;
 }

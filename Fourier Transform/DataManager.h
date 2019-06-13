@@ -9,6 +9,7 @@ private:
 	int** OutputImage; //輸出影像
 	double ** FreqReal; // 傅立葉實數部分
 	double ** FreqImag; // 傅立葉虛數部分
+	std::complex<double>** Freq;	// complex
 	int ImageHeight;
 	int ImageWidth;
 
@@ -28,6 +29,7 @@ public:
 	int** GetOutputImage();
 	double** GetFreqReal();
 	double** GetFreqImag();
+	std::complex<double>** GetFreq();
 };
 
 

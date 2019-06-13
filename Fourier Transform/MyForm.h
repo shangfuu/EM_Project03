@@ -437,7 +437,7 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 
 	/* Do Fast Fourier */
 
-	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), h);
+	fourierTransformMethod->FastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(), dataManager->GetFreq(), h);
 
 	/* Output Image */
 	Bitmap^ FFTImage = gcnew Bitmap(w, h);
@@ -462,7 +462,43 @@ private: System::Void fastFourierTransformToolStripMenuItem_Click(System::Object
 
 
 private: System::Void inverseFastFourierTransformToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+	/* Initial Stuff*/
+	int w = dataManager->GetImageWidth();
+	int h = dataManager->GetImageHeight();
 
+	// 利用傅立葉之平移性，平移頻率
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			int valuePixeli = dataManager->GetInputImage()[i][j];
+			valuePixeli = valuePixeli * pow((float)-1, (float)(i + j));
+			dataManager->SetPixel(j, i, valuePixeli);
+		}
+	}
+
+	/* Do Fast Fourier Inverse */
+	fourierTransformMethod->InverseFastFourierTransform(dataManager->GetInputImage(), dataManager->GetOutputImage(),dataManager->GetFreq(), h);
+
+	/* Output Image */
+	Bitmap^ FFTINVImage = gcnew Bitmap(w, h);
+	for (int i = 0; i <h; i++)
+	{
+		for (int j = 0; j <w; j++)
+		{
+			int valuePixeli = dataManager->GetOutputImage()[i][j];
+			if (valuePixeli > 255)
+			{
+				valuePixeli = 255;
+			}
+			else if (valuePixeli < 0)
+			{
+				valuePixeli = 0;
+			}
+			FFTINVImage->SetPixel(j, i, Color::FromArgb(valuePixeli, valuePixeli, valuePixeli));
+		}
+	}
+	pictureBox_OutputImage->Image = FFTINVImage;
 }
 };
 }
