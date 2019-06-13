@@ -168,6 +168,7 @@ void FT::FastFourierTransform(int ** InputImage, int ** OutputImage,std::complex
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
 			std::complex<double>tmp(InputImage[i][j], 0);
+			// std::complex<double>tmp(InputImage[j][i], 0);
 			Freq[i].push_back(tmp);
 		}
 	}
@@ -306,6 +307,7 @@ void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
 			Freq[i].push_back(FreqRI[i][j]);
+			// Freq[i].push_back(FreqRI[j][i]);
 		}
 	}
 
