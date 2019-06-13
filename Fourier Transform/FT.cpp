@@ -249,10 +249,44 @@ void FT::InverseFFT(double ** InverseReal, double ** InverseImag, double ** pFre
 }
 
 
-void FT::LowpassFilter(double** Real, double** Img, double** filter)
+void FT::LowpassFilter(double** Real, double** Img, int** output, int h, int w)
 {
+	double **filter = new double*[h];
+	for (int i = 0; i < h; i++) {
+		filter[i] = new double[w];
+	}
+	int midh = h / 2;
+	int midw = w / 2;
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			int u = i - midh, v = j - midw;
+			filter[i][j] = 1 / (1 + pow((sqrt(pow(u, 2) + pow(v, 2))) / 10, pow(2, 3)));
+			std::complex<double> com(Real[i][j], Img[i][j]);
+			com *= filter[i][j];
+			Real[i][j] = com.real();
+			Img[i][j] = com.imag();
+			output[i][j] = sqrt(pow(Real[i][j], 2) + pow(Img[i][j], 2));
+		}
+	}
 }
 
-void FT::HighpassFilter(double** Real, double** Img, double** filter)
+void FT::HighpassFilter(double** Real, double** Img, int** output, int h, int w)
 {
+	double **filter = new double*[h];
+	for (int i = 0; i < h; i++) {
+		filter[i] = new double[w];
+	}
+	int midh = h / 2;
+	int midw = w / 2;
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			int u = i - midh, v = j - midw;
+			filter[i][j] = 1 - (1 / (1 + pow((sqrt(pow(u, 2) + pow(v, 2))) / 10, pow(2, 3))));
+			std::complex<double> com(Real[i][j], Img[i][j]);
+			com *= filter[i][j];
+			Real[i][j] = com.real();
+			Img[i][j] = com.imag();
+			output[i][j] = sqrt(pow(Real[i][j], 2) + pow(Img[i][j], 2));
+		}
+	}
 }
