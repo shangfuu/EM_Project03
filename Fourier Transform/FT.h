@@ -16,10 +16,12 @@ public:
 	void InverseDiscreteFourierTransform(int** InputImage, int** OutputImage, double ** FreqReal, double ** FreqImag, int h, int w);
 	void InverseDFT(double ** InverseReal, double ** InverseImag, double ** pFreqReal, double ** pFreqImag, int h, int w, int x, int y);
 
-	void FastFourierTransform(int** InputImage, int** OutputImage,std::complex<double>**FreqRI, int h);
+	// void FastFourierTransform(int** InputImage, int** OutputImage,std::complex<double>**FreqRI, int h);
+	void FastFourierTransform(int** InputImage, int** OutputImage, double ** FreqReal, double ** FreqImag, int h);
 	std::vector<std::complex<double>> FFT(std::vector<std::complex<double>>x);
 
-	void InverseFastFourierTransform(int** InputImage, int** OutputImage, std::complex<double>** FreqRI, int h);
+	// void InverseFastFourierTransform(int** InputImage, int** OutputImage, std::complex<double>** FreqRI, int h);
+	void InverseFastFourierTransform(int** InputImage, int** OutputImage, double ** FreqReal, double ** FreqImag, int h);
 	void InverseFFT(double ** InverseReal, double ** InverseImag, double ** pFreqReal, double ** pFreqImag, int h, int w, int x, int y);
 
 	void LowpassFilter(double** Real, double** Img, int** output, int h, int w);

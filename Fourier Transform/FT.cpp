@@ -157,7 +157,7 @@ void FT::InverseDFT(double ** InverseReal, double ** InverseImag, double ** pFre
 	InverseImag[x][y] = InverseImag[x][y] / (float)M;
 }
 
-void FT::FastFourierTransform(int ** InputImage, int ** OutputImage,std::complex<double>** FreqRI, int h)
+void FT::FastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h)
 {
 	//------------------Initial--------------------------
 	int N = h;
@@ -248,11 +248,11 @@ void FT::FastFourierTransform(int ** InputImage, int ** OutputImage,std::complex
 	{
 		for (int j = 0; j < N; j++)
 		{
-			FreqRI[i][j].real(Freq[i][j].real() / N);
-			FreqRI[i][j].imag(Freq[i][j].imag() / N);
+			FreqReal[i][j]= Freq[i][j].real() / N;
+			FreqImag[i][j]= Freq[i][j].imag() / N;
 
 			// 將計算好的傅立葉實數與虛數部分作結合 
-			mix = sqrt(pow(FreqRI[i][j].real(), (double) 2.0) + pow(FreqRI[i][j].imag(), (double) 2.0));
+			mix = sqrt(pow(FreqReal[i][j], (double) 2.0) + pow(FreqImag[i][j], (double) 2.0));
 			// 結合後之頻率域丟入影像陣列中顯示 
 			OutputImage[i][j] = mix;
 		}
@@ -296,7 +296,7 @@ std::vector<std::complex<double>> FT::FFT(std::vector<std::complex<double>>x)
 	return x;
 }
 
-void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::complex<double>** FreqRI, int h)
+void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage, double ** FreqReal, double ** FreqImag, int h)
 {
 	//------------------Initial--------------------------
 	int N = h;
@@ -306,8 +306,9 @@ void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::
 	// Freq = preFreq
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
-			Freq[i].push_back(FreqRI[i][j]);
-			// Freq[i].push_back(FreqRI[j][i]);
+			std::complex<double>tmp(FreqReal[i][j],FreqImag[i][j]);
+			Freq[i].push_back(tmp);
+			// std::complex<double>tmp(FreqReal[j][i],FreqImag[j][i]);
 		}
 	}
 
@@ -385,11 +386,11 @@ void FT::InverseFastFourierTransform(int ** InputImage, int ** OutputImage,std::
 	{
 		for (int j = 0; j < N; j++)
 		{
-			FreqRI[i][j].real(Freq[i][j].real() / N);
-			FreqRI[i][j].imag(Freq[i][j].imag() / N);
+			FreqReal[i][j] = Freq[i][j].real() / N;
+			FreqImag[i][j] = Freq[i][j].imag() / N;
 
 			// 將計算好的傅立葉實數與虛數部分作結合 
-			mix = sqrt(pow(FreqRI[i][j].real(), (double) 2.0) + pow(FreqRI[i][j].imag(), (double) 2.0));
+			mix = sqrt(pow(FreqReal[i][j], (double) 2.0) + pow(FreqImag[i][j], (double) 2.0));
 			// 結合後之頻率域丟入影像陣列中顯示 
 			OutputImage[i][j] = mix;
 		}
